@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Stream</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            background-color: #000000; /* Background remains black */
+            display: flex;
+            flex-direction: column; /* Stack elements vertically */
+            align-items: center; /* Center horizontally */
+            overflow: hidden; /* Prevent scrollbars */
+        }
+        #controls {
+            margin: 10px 0;
+            display: flex;
+            gap: 10px;
+        }
+        iframe {
+            border: none;
+            width: 80vw; /* Set iframe width to 80% of viewport width */
+            height: 80vh; /* Set iframe height to 80% of viewport height */
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <input type="text" id="urlInput" placeholder="Enter media URL. Please do not misuse this site." style="width: 300px;">
+        <button id="submitButton">Submit</button>
+    </div>
+    <iframe id="videoFrame" src="null" allowfullscreen></iframe>
+
+    <script>
+        const iframe = document.getElementById('videoFrame');
+        const urlInput = document.getElementById('urlInput');
+        const submitButton = document.getElementById('submitButton');
+
+        // Adjust iframe size dynamically on window resize
+        function resizeIframe() {
+            const maxHeight = window.innerHeight * 0.8; // 80% of viewport height
+            const maxWidth = window.innerWidth * 0.8; // 80% of viewport width
+
+            // Maintain aspect ratio and ensure video fits within the viewport
+            if (maxWidth / maxHeight > 16 / 9) {
+                iframe.style.height = `${maxHeight}px`;
+                iframe.style.width = `${maxHeight * (16 / 9)}px`;
+            } else {
+                iframe.style.width = `${maxWidth}px`;
+                iframe.style.height = `${maxWidth / (16 / 9)}px`;
+            }
+        }
+
+        window.addEventListener('resize', resizeIframe);
+        resizeIframe(); // Initial resize on page load
+
+        // Change iframe URL on submit button click and extract origin from initial URL
+        submitButton.addEventListener('click', () => {
+            const newUrl = urlInput.value.trim();
+            if (newUrl) {
+                iframe.src = newUrl;
+                currentOrigin = new URL(newUrl).origin; // Update origin
+            }
+        }); 
+
+        // Listen for messages from the iframe
+        window.addEventListener('message', (event) => {
+            // Ensure the message is from the current origin
+            if (event.origin === currentOrigin) {
+                const { width, height } = event.data;
+
+                // Dynamically resize the iframe (if needed)
+                if (width && height) {
+                    iframe.style.width = `${width}px`;
+                    iframe.style.height = `${height}px`;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
